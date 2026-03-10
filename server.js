@@ -19,7 +19,7 @@ app.post('/api/submit', async (req, res) => {
     try {
         const data = req.body;
         
-        // 验证必填字段
+        // 验证必填字段（匹配前端 index.html 的 required 字段）
         const requiredFields = ['姓名', '部门单位', '邮箱', '使用经验', '项目经验', '参与动机', '时间投入'];
         for (const field of requiredFields) {
             if (!data[field]) {
