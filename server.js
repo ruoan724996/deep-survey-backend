@@ -7,12 +7,12 @@ const https = require('https');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 飞书配置
+// 飞书配置（大模型深度交流群筛选问卷）
 const FEISHU_CONFIG = {
     appId: process.env.FEISHU_APP_ID || 'cli_a90981de3c78dcc8',
     appSecret: process.env.FEISHU_APP_SECRET || 'RQ0RCFDrxfIelhQvgzHLJbp7C3agHnaq',
-    appToken: process.env.FEISHU_APP_TOKEN || 'MMwsb70JkaDngbs8P5ecXGllnse',
-    tableId: process.env.FEISHU_TABLE_ID || 'tblWbQxbHNiKk5gB'
+    appToken: process.env.FEISHU_APP_TOKEN || 'Z0dZbNUvya6uxpsbldTcmFtWngd',
+    tableId: process.env.FEISHU_TABLE_ID || 'tblwubqz2IHIOVDb'
 };
 
 // 中间件
