@@ -215,9 +215,22 @@ app.post('/api/submit', async (req, res) => {
     } catch (error) {
         console.error('❌ 提交失败:', error.message);
         console.error('错误堆栈:', error.stack);
+        
+        // 详细错误诊断
+        if (error.message.includes('Token')) {
+            console.error('❌ 飞书 Token 获取失败，请检查 FEISHU_APP_ID 和 FEISHU_APP_SECRET');
+        }
+        if (error.message.includes('bitable') || error.message.includes('apps')) {
+            console.error('❌ 飞书表格访问失败，请检查 FEISHU_APP_TOKEN 和 FEISHU_TABLE_ID');
+        }
+        
         res.status(500).json({ 
             success: false, 
-            message: '服务器错误：' + error.message 
+            message: '提交失败：' + error.message,
+            debug: {
+                feishuConfigured: !!(FEISHU_CONFIG.appToken && FEISHU_CONFIG.tableId),
+                errorType: error.constructor.name
+            }
         });
     }
 });
@@ -238,13 +251,33 @@ app.get('/', (req, res) => {
 
 // 启动服务器
 app.listen(PORT, () => {
+    // 环境变量检查
+    const envCheck = {
+        FEISHU_APP_ID: FEISHU_CONFIG.appId ? '✅' : '❌',
+        FEISHU_APP_SECRET: FEISHU_CONFIG.appSecret ? '✅' : '❌',
+        FEISHU_APP_TOKEN: FEISHU_CONFIG.appToken ? '✅' : '❌',
+        FEISHU_TABLE_ID: FEISHU_CONFIG.tableId ? '✅' : '❌'
+    };
+    
+    console.log('\n🔍 环境变量检查:');
+    console.log(`  FEISHU_APP_ID: ${envCheck.FEISHU_APP_ID}`);
+    console.log(`  FEISHU_APP_SECRET: ${envCheck.FEISHU_APP_SECRET}`);
+    console.log(`  FEISHU_APP_TOKEN: ${envCheck.FEISHU_APP_TOKEN}`);
+    console.log(`  FEISHU_TABLE_ID: ${envCheck.FEISHU_TABLE_ID}`);
+    
+    const allConfigured = Object.values(envCheck).every(v => v === '✅');
+    if (!allConfigured) {
+        console.log('\n⚠️  警告：飞书配置不完整，提交功能将无法使用！');
+        console.log('请在 Railway 后台设置环境变量。\n');
+    }
+    
     console.log(`
 ╔════════════════════════════════════════════════════════╗
 ║   🎯 大模型深度交流群筛选问卷系统                        ║
 ║   服务器已启动                                          ║
 ║   本地访问：http://localhost:${PORT}                     ║
 ║   提交 API: POST http://localhost:${PORT}/api/submit     ║
-║   飞书集成：${FEISHU_CONFIG.appToken ? '✅ 已配置' : '❌ 未配置'}          ║
+║   飞书集成：${allConfigured ? '✅ 已配置' : '❌ 未配置'}                    ║
 ╚════════════════════════════════════════════════════════╝
     `);
 });
