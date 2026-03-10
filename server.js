@@ -2,20 +2,139 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// 飞书配置
+const FEISHU_CONFIG = {
+    appId: process.env.FEISHU_APP_ID || 'cli_a90981de3c78dcc8',
+    appSecret: process.env.FEISHU_APP_SECRET || 'RQ0RCFDrxfIelhQvgzHLJbp7C3agHnaq',
+    appToken: process.env.FEISHU_APP_TOKEN || 'MMwsb70JkaDngbs8P5ecXGllnse',
+    tableId: process.env.FEISHU_TABLE_ID || 'tblWbQxbHNiKk5gB'
+};
 
 // 中间件
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 存储提交数据（临时内存存储，生产环境应该用数据库）
-const submissions = [];
+// 缓存 Token
+let cachedToken = null;
+let tokenExpireTime = 0;
+
+// 获取飞书 Access Token
+async function getFeishuToken() {
+    if (cachedToken && Date.now() < tokenExpireTime) {
+        console.log('✅ 使用缓存的 Token');
+        return cachedToken;
+    }
+
+    console.log('🔄 获取新的 Access Token...');
+    
+    return new Promise((resolve, reject) => {
+        const data = JSON.stringify({
+            app_id: FEISHU_CONFIG.appId,
+            app_secret: FEISHU_CONFIG.appSecret
+        });
+
+        const options = {
+            hostname: 'open.feishu.cn',
+            port: 443,
+            path: '/open-apis/auth/v3/tenant_access_token/internal',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(data)
+            }
+        };
+
+        const req = https.request(options, (res) => {
+            let responseData = '';
+            res.on('data', (chunk) => responseData += chunk);
+            res.on('end', () => {
+                const result = JSON.parse(responseData);
+                if (result.code === 0) {
+                    cachedToken = result.tenant_access_token;
+                    tokenExpireTime = Date.now() + (result.expire - 300) * 1000;
+                    console.log('✅ Token 获取成功');
+                    resolve(cachedToken);
+                } else {
+                    reject(new Error('获取 Token 失败：' + result.msg));
+                }
+            });
+        });
+
+        req.on('error', reject);
+        req.write(data);
+        req.end();
+    });
+}
+
+// 提交数据到飞书
+async function submitToFeishu(fields) {
+    const token = await getFeishuToken();
+    
+    return new Promise((resolve, reject) => {
+        const data = JSON.stringify({ fields });
+
+        const options = {
+            hostname: 'open.feishu.cn',
+            port: 443,
+            path: `/open-apis/bitable/v1/apps/${FEISHU_CONFIG.appToken}/tables/${FEISHU_CONFIG.tableId}/records`,
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(data)
+            }
+        };
+
+        console.log('📤 提交数据到飞书...');
+        console.log('飞书配置:', {
+            appToken: FEISHU_CONFIG.appToken,
+            tableId: FEISHU_CONFIG.tableId
+        });
+
+        const req = https.request(options, (res) => {
+            let responseData = '';
+            res.on('data', (chunk) => responseData += chunk);
+            res.on('end', () => {
+                console.log('飞书响应状态:', res.statusCode);
+                console.log('飞书响应内容:', responseData.substring(0, 500));
+                
+                try {
+                    const result = JSON.parse(responseData);
+                    if (result.code === 0) {
+                        console.log('✅ 飞书提交成功，记录 ID:', result.data.record.id);
+                        resolve(result);
+                    } else {
+                        console.error('❌ 飞书 API 错误:', result.msg);
+                        reject(new Error(result.msg || '提交失败'));
+                    }
+                } catch (e) {
+                    console.error('❌ 解析飞书响应失败:', e.message);
+                    reject(new Error('解析失败：' + e.message));
+                }
+            });
+        });
+
+        req.on('error', (e) => {
+            console.error('❌ 飞书请求失败:', e.message);
+            reject(new Error('请求失败：' + e.message));
+        });
+        req.write(data);
+        req.end();
+    });
+}
 
 // 提交 API
 app.post('/api/submit', async (req, res) => {
+    console.log('\n📝 收到问卷提交');
+    console.log('填写人:', req.body['姓名'] || '匿名');
+    console.log('邮箱:', req.body['邮箱'] || '未填写');
+    
     try {
         const data = req.body;
         
@@ -23,6 +142,7 @@ app.post('/api/submit', async (req, res) => {
         const requiredFields = ['姓名', '部门单位', '邮箱', '使用经验', '项目经验', '参与动机', '时间投入'];
         for (const field of requiredFields) {
             if (!data[field]) {
+                console.log('❌ 验证失败：缺少字段', field);
                 return res.status(400).json({
                     success: false,
                     message: `缺少必填字段：${field}`
@@ -32,6 +152,7 @@ app.post('/api/submit', async (req, res) => {
         
         // 验证多选框至少选一个
         if (!data['使用场景'] || (Array.isArray(data['使用场景']) && data['使用场景'].length === 0)) {
+            console.log('❌ 验证失败：使用场景未选择');
             return res.status(400).json({
                 success: false,
                 message: '请至少选择一个使用场景选项'
@@ -41,6 +162,7 @@ app.post('/api/submit', async (req, res) => {
         // 验证邮箱格式
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(data['邮箱'])) {
+            console.log('❌ 验证失败：邮箱格式错误', data['邮箱']);
             return res.status(400).json({
                 success: false,
                 message: '邮箱格式不正确'
@@ -49,61 +171,55 @@ app.post('/api/submit', async (req, res) => {
         
         // 验证参与动机字数
         if (data['参与动机'].length < 20) {
+            console.log('❌ 验证失败：参与动机字数不足', data['参与动机'].length);
             return res.status(400).json({
                 success: false,
                 message: '参与动机请至少填写 20 字'
             });
         }
         
-        // 添加提交记录
-        const submission = {
-            id: submissions.length + 1,
-            ...data,
-            submittedAt: new Date().toISOString()
-        };
-        submissions.push(submission);
+        console.log('✅ 前端验证通过');
         
-        console.log('✅ 新提交:', submission);
+        // 处理空值 - 姓名和部门可选
+        const fields = { ...data };
+        if (!fields['姓名'] || fields['姓名'].trim() === '') {
+            fields['姓名'] = '匿名';
+        }
+        if (!fields['部门单位'] || fields['部门单位'].trim() === '') {
+            fields['部门单位'] = '未填写';
+        }
         
-        // TODO: 这里可以添加飞书多维表格集成
-        // await submitToFeishuBitable(data);
+        // 格式化数组字段为字符串
+        if (Array.isArray(fields['使用场景'])) {
+            fields['使用场景'] = fields['使用场景'].join(', ');
+        }
+        if (Array.isArray(fields['能分享'])) {
+            fields['能分享'] = fields['能分享'].join(', ');
+        }
         
-        res.json({
-            success: true,
+        // 添加提交时间
+        fields['提交时间'] = new Date().toISOString();
+        
+        console.log('📤 准备提交到飞书:', fields);
+        
+        // 提交到飞书多维表格
+        const result = await submitToFeishu(fields);
+        
+        console.log('✅ 提交成功:', result.data.record.id);
+        res.json({ 
+            success: true, 
             message: '提交成功',
-            id: submission.id
+            recordId: result.data.record.id 
         });
         
     } catch (error) {
-        console.error('❌ 提交错误:', error);
-        res.status(500).json({
-            success: false,
-            message: '服务器错误，请稍后重试'
+        console.error('❌ 提交失败:', error.message);
+        console.error('错误堆栈:', error.stack);
+        res.status(500).json({ 
+            success: false, 
+            message: '服务器错误：' + error.message 
         });
     }
-});
-
-// 获取提交列表 API（带简单认证）
-app.get('/api/submissions', (req, res) => {
-    const auth = req.headers.authorization;
-    
-    // 简单认证（生产环境应该用更好的方式）
-    if (auth !== `Bearer ${process.env.API_SECRET || 'secret123'}`) {
-        return res.status(401).json({
-            success: false,
-            message: '未授权'
-        });
-    }
-    
-    res.json({
-        success: true,
-        data: submissions
-    });
-});
-
-// 首页
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // 健康检查
@@ -111,8 +227,13 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        submissions: submissions.length
+        feishuConfigured: !!(FEISHU_CONFIG.appToken && FEISHU_CONFIG.tableId)
     });
+});
+
+// 首页
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // 启动服务器
@@ -123,6 +244,7 @@ app.listen(PORT, () => {
 ║   服务器已启动                                          ║
 ║   本地访问：http://localhost:${PORT}                     ║
 ║   提交 API: POST http://localhost:${PORT}/api/submit     ║
+║   飞书集成：${FEISHU_CONFIG.appToken ? '✅ 已配置' : '❌ 未配置'}          ║
 ╚════════════════════════════════════════════════════════╝
     `);
 });
