@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大模型深度交流群 - 成员筛选调研</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header .intro {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .header .intro strong {
+            color: #ffd700;
+        }
+
+        .form-container {
+            padding: 40px 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .emoji {
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group .hint {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .radio-group,
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-option,
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .radio-option:hover,
+        .checkbox-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .radio-option input,
+        .checkbox-option input {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 15px 0;
+            border-bottom: 2px solid #e0e0e0;
+            z-index: 100;
+        }
+
+        .progress-bar .progress {
+            height: 6px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .progress-bar .text {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 60px 30px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .success-message h2 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .success-message p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .success-message .next-steps {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .success-message .next-steps h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .success-message .next-steps ol {
+            padding-left: 20px;
+            color: #333;
+        }
+
+        .success-message .next-steps li {
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c0392b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            position: sticky;
+            top: 70px;
+            z-index: 99;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .word-count {
+            text-align: right;
+            font-size: 13px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .word-count.warning {
+            color: #e74c3c;
+        }
+
+        .word-count.ok {
+            color: #27ae60;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .form-container {
+                padding: 30px 20px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 大模型深度交流群 - 成员筛选调研</h1>
+            <p>寻找志同道合的伙伴，共建高质量技术社群</p>
+            
+            <div class="intro">
+                <strong>📌 建群目的：</strong><br>
+                为了促进大模型技术的深度交流，我们计划组建一个<strong>深度交流群</strong>。本群面向有实际经验和强烈学习意愿的同行，定期组织技术分享、案例研讨和项目合作。<br><br>
+                <strong>⚠️ 筛选说明：</strong><br>
+                填写本问卷后，我们将根据您的经验和参与意愿进行审核。预计从 200 人中筛选出<strong>30-50 人</strong>组成核心交流群。<br><br>
+                <strong>📧 入群方式：</strong><br>
+                审核通过后将通过<strong>邮箱</strong>发送入群邀请，请务必填写常用邮箱。
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress" id="progress" style="width: 0%"></div>
+            <div class="text" id="progress-text">进度：0%</div>
+        </div>
+
+        <div class="form-container">
+            <div id="error-message" class="error-message"></div>
+
+            <form id="survey-form">
+                <!-- 基本信息 -->
+                <div class="section">
+                    <div class="section-title">
+                        <span class="emoji">📝</span>
+                        基本信息
+                    </div>
+
+                    <div class="form-group">
+                        <label>姓名 <span class="required">*</span></label>
+                        <input type="text" name="姓名" required placeholder="请输入您的姓名">
+                    </div>
+
+                    <div class="form-group">
+                        <label>部门/单位 <span class="required">*</span></label>
+                        <input type="text" name="部门单位" required placeholder="请输入您的工作单位">
+                    </div>
+
+                    <div class="form-group">
+                        <label>邮箱 <span class="required">*</span></label>
+                        <input type="email" name="邮箱" required placeholder="请输入常用邮箱，用于接收入群邀请">
+                        <div class="hint">📧 审核通过后将通过此邮箱发送入群邀请</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>微信/手机号</label>
+                        <input type="tel" name="微信手机号" placeholder="方便拉群和日常联系（选填）">
+                    </div>
+                </div>
+
+                <!-- 大模型使用经验 -->
+                <div class="section">
+                    <div class="section-title">
+                        <span class="emoji">🤖</span>
+                        大模型使用经验
+                    </div>
+
+                    <div class="form-group">
+                        <label>您当前的大模型使用经验 <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="使用经验" value="没用过" required> 没用过
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="使用经验" value="偶尔使用（每周 1-2 次）"> 偶尔使用（每周 1-2 次）
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="使用经验" value="经常使用（每天）"> 经常使用（每天）
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="使用经验" value="深度用户（用于工作/开发）"> 深度用户（用于工作/开发）
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>您主要用大模型做什么（可多选） <span class="required">*</span></label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="使用场景" value="日常问答"> 日常问答
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="使用场景" value="文档写作"> 文档写作
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="使用场景" value="代码开发"> 代码开发
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="使用场景" value="数据分析"> 数据分析
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="使用场景" value="图像生成"> 图像生成
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="使用场景" value="其他"> 其他
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>您是否有过大模型项目经验 <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="项目经验" value="没有" required> 没有
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="项目经验" value="尝试过但未完成"> 尝试过但未完成
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="项目经验" value="完成过 1-2 个小项目"> 完成过 1-2 个小项目
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="项目经验" value="完成过多个项目"> 完成过多个项目
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 参与意愿 -->
+                <div class="section">
+                    <div class="section-title">
+                        <span class="emoji">🎯</span>
+                        参与意愿（重要筛选依据）
+                    </div>
+
+                    <div class="form-group">
+                        <label>为什么想加入深度交流群 <span class="required">*</span></label>
+                        <textarea name="参与动机" required placeholder="请用 1-2 句话说明您的参与动机和期望..." oninput="updateWordCount(this)"></textarea>
+                        <div class="hint">💡 请认真填写，这是重要筛选依据（建议至少 20 字）</div>
+                        <div class="word-count" id="motivation-count">0 字</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>您能投入多少时间参与群交流 <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="时间投入" value="偶尔参与" required> 偶尔参与
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="时间投入" value="每周能参与 1-2 次讨论"> 每周能参与 1-2 次讨论
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="时间投入" value="每周能参与 3 次以上"> 每周能参与 3 次以上
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="时间投入" value="可以深度参与和组织活动"> 可以深度参与和组织活动
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>您能分享什么内容或技能（可多选）</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="能分享" value="技术方案分享"> 技术方案分享
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="能分享" value="实战案例分享"> 实战案例分享
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="能分享" value="行业洞察"> 行业洞察
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="能分享" value="资源对接"> 资源对接
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="能分享" value="活动组织"> 活动组织
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="能分享" value="其他"> 其他
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 期望 -->
+                <div class="section">
+                    <div class="section-title">
+                        <span class="emoji">💭</span>
+                        期望与建议
+                    </div>
+
+                    <div class="form-group">
+                        <label>您希望从这个群获得什么？</label>
+                        <textarea name="期望" placeholder="例如：技术交流、项目合作、资源对接等..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>其他建议或想说的话</label>
+                        <textarea name="其他建议" placeholder="欢迎提出任何建议..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">提交申请</button>
+            </form>
+
+            <div id="success-message" class="success-message">
+                <div class="success-icon">✅</div>
+                <h2>申请提交成功！</h2>
+                <p>感谢您的认真填写，我们会仔细审核每一份申请。</p>
+                
+                <div class="next-steps">
+                    <h3>📋 后续流程：</h3>
+                    <ol>
+                        <li><strong>审核时间：</strong>1-3 个工作日内完成审核</li>
+                        <li><strong>通知方式：</strong>通过<strong>邮箱</strong>发送入群邀请</li>
+                        <li><strong>入群准备：</strong>请留意邮箱通知，按指引加入深度交流群</li>
+                        <li><strong>未通过说明：</strong>因名额有限，未通过不代表不优秀，后续有其他机会会优先通知</li>
+                    </ol>
+                </div>
+                
+                <p style="margin-top: 20px; color: #666;">
+                    📧 如有问题，请联系：田福成
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 后端 API 配置 - 使用当前域名
+        const API_BASE_URL = window.location.origin + '/api';
+        
+        // 检查网络连接状态
+        function checkNetworkConnection() {
+            if (!navigator.onLine) {
+                throw new Error('网络连接已断开，请检查网络连接');
+            }
+        }
+
+        // 更新进度条
+        function updateProgress() {
+            const form = document.getElementById('survey-form');
+            const requiredFields = form.querySelectorAll('[required]');
+            let filledCount = 0;
+            
+            requiredFields.forEach(field => {
+                if (field.type === 'checkbox') {
+                    const name = field.name;
+                    const checked = form.querySelectorAll(`input[name="${name}"]:checked`);
+                    if (checked.length > 0) filledCount++;
+                } else if (field.type === 'radio') {
+                    const name = field.name;
+                    const checked = form.querySelector(`input[name="${name}"]:checked`);
+                    if (checked) filledCount++;
+                } else if (field.value.trim()) {
+                    filledCount++;
+                }
+            });
+            
+            const percentage = Math.round((filledCount / requiredFields.length) * 100);
+            document.getElementById('progress').style.width = percentage + '%';
+            document.getElementById('progress-text').textContent = `进度：${percentage}%`;
+        }
+
+        // 更新字数统计
+        function updateWordCount(textarea) {
+            const count = textarea.value.length;
+            const counter = document.getElementById('motivation-count');
+            counter.textContent = count + ' 字';
+            
+            if (count < 20) {
+                counter.className = 'word-count warning';
+            } else {
+                counter.className = 'word-count ok';
+            }
+        }
+
+        // 提交数据到后端
+        async function submitToBackend(formData) {
+            try {
+                // 检查网络连接
+                checkNetworkConnection();
+                
+                console.log('开始提交数据到:', `${API_BASE_URL}/submit`);
+                console.log('提交数据:', formData);
+                
+                const response = await fetch(`${API_BASE_URL}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData),
+                    // 添加超时设置
+                    signal: AbortSignal.timeout(10000) // 10 秒超时
+                });
+                
+                console.log('响应状态:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('响应错误:', errorText);
+                    throw new Error(`服务器响应错误：${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('提交成功:', data);
+                
+                if (data.success) {
+                    return data;
+                } else {
+                    throw new Error(data.message || '提交失败');
+                }
+            } catch (error) {
+                console.error('提交错误:', error);
+                
+                // 根据错误类型提供友好提示
+                if (error.name === 'AbortError') {
+                    throw new Error('提交超时，请检查网络连接后重试');
+                } else if (error.message.includes('网络连接')) {
+                    throw new Error(error.message);
+                } else if (error.message.includes('Failed to fetch')) {
+                    throw new Error('无法连接到服务器，请检查网络连接');
+                } else {
+                    throw new Error('网络错误，请检查网络连接：' + error.message);
+                }
+            }
+        }
+
+        // 处理表单提交
+        document.getElementById('survey-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('.btn-submit');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            
+            // 禁用提交按钮
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            errorMessage.classList.remove('show');
+            
+            try {
+                // 自定义验证：检查必填的多选框是否至少选了一个
+                const requiredCheckboxGroups = ['使用场景'];
+                for (const groupName of requiredCheckboxGroups) {
+                    const checkboxes = document.querySelectorAll(`input[name="${groupName}"]`);
+                    const checked = document.querySelectorAll(`input[name="${groupName}"]:checked`);
+                    if (checked.length === 0) {
+                        throw new Error(`请至少选择一个${groupName.replace('使用场景', '使用场景')}选项`);
+                    }
+                }
+                
+                // 收集表单数据
+                const formData = new FormData(e.target);
+                const data = {};
+                
+                // 处理单选和文本字段
+                for (let [key, value] of formData.entries()) {
+                    if (!data[key]) {
+                        data[key] = value;
+                    }
+                }
+                
+                // 处理多选字段
+                const checkboxFields = ['使用场景', '能分享'];
+                checkboxFields.forEach(field => {
+                    const values = formData.getAll(field);
+                    if (values.length > 0) {
+                        data[field] = values;
+                    }
+                });
+                
+                // 添加提交时间
+                data['提交时间'] = new Date().toISOString();
+                
+                console.log('提交数据:', data);
+                
+                // 提交到后端
+                const result = await submitToBackend(data);
+                
+                // 显示成功消息
+                document.getElementById('survey-form').style.display = 'none';
+                document.querySelector('.progress-bar').style.display = 'none';
+                successMessage.classList.add('show');
+                window.scrollTo(0, 0);
+                
+                console.log('提交成功:', result);
+                
+            } catch (error) {
+                console.error('提交失败:', error);
+                errorMessage.textContent = '提交失败：' + error.message;
+                errorMessage.classList.add('show');
+                window.scrollTo(0, 0);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交申请';
+            }
+        });
+
+        // 监听表单变化更新进度
+        document.getElementById('survey-form').addEventListener('change', updateProgress);
+        document.getElementById('survey-form').addEventListener('input', updateProgress);
+        
+        // 自定义验证提示
+        const form = document.getElementById('survey-form');
+        form.addEventListener('invalid', function(e) {
+            e.preventDefault();
+            const field = e.target;
+            const label = field.closest('.form-group').querySelector('label');
+            const fieldName = label ? label.textContent.replace('*', '').trim() : field.name;
+            
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = `请填写必填项：${fieldName}`;
+            errorMessage.classList.add('show');
+            
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, true);
+    </script>
+</body>
+</html>
