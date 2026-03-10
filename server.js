@@ -8,15 +8,25 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 飞书配置（大模型深度交流群筛选问卷）
+// ⚠️ 必须通过 Railway 环境变量配置，不要硬编码！
 const FEISHU_CONFIG = {
-    appId: process.env.FEISHU_APP_ID || 'cli_a90981de3c78dcc8',
-    appSecret: process.env.FEISHU_APP_SECRET || 'RQ0RCFDrxfIelhQvgzHLJbp7C3agHnaq',
-    appToken: process.env.FEISHU_APP_TOKEN || 'Z0dZbNUvya6uxpsbldTcmFtWngd',
-    tableId: process.env.FEISHU_TABLE_ID || 'tblwubqz2IHIOVDb'
+    appId: process.env.FEISHU_APP_ID,
+    appSecret: process.env.FEISHU_APP_SECRET,
+    appToken: process.env.FEISHU_APP_TOKEN,
+    tableId: process.env.FEISHU_TABLE_ID
 };
 
 // 中间件
-app.use(cors());
+app.use(cors({
+    origin: [
+        'https://gracious-kindness.up.railway.app',
+        'https://agile-eagerness.up.railway.app',
+        'https://diligent-elegance.up.railway.app',
+        'http://localhost:3000'
+    ],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -251,25 +261,28 @@ app.get('/', (req, res) => {
 
 // 启动服务器
 app.listen(PORT, () => {
-    // 环境变量检查
-    const envCheck = {
-        FEISHU_APP_ID: FEISHU_CONFIG.appId ? '✅' : '❌',
-        FEISHU_APP_SECRET: FEISHU_CONFIG.appSecret ? '✅' : '❌',
-        FEISHU_APP_TOKEN: FEISHU_CONFIG.appToken ? '✅' : '❌',
-        FEISHU_TABLE_ID: FEISHU_CONFIG.tableId ? '✅' : '❌'
-    };
+    // 环境变量检查（强制）
+    const missingEnv = [];
+    if (!FEISHU_CONFIG.appId) missingEnv.push('FEISHU_APP_ID');
+    if (!FEISHU_CONFIG.appSecret) missingEnv.push('FEISHU_APP_SECRET');
+    if (!FEISHU_CONFIG.appToken) missingEnv.push('FEISHU_APP_TOKEN');
+    if (!FEISHU_CONFIG.tableId) missingEnv.push('FEISHU_TABLE_ID');
     
     console.log('\n🔍 环境变量检查:');
-    console.log(`  FEISHU_APP_ID: ${envCheck.FEISHU_APP_ID}`);
-    console.log(`  FEISHU_APP_SECRET: ${envCheck.FEISHU_APP_SECRET}`);
-    console.log(`  FEISHU_APP_TOKEN: ${envCheck.FEISHU_APP_TOKEN}`);
-    console.log(`  FEISHU_TABLE_ID: ${envCheck.FEISHU_TABLE_ID}`);
+    console.log(`  FEISHU_APP_ID: ${FEISHU_CONFIG.appId ? '✅' : '❌'}`);
+    console.log(`  FEISHU_APP_SECRET: ${FEISHU_CONFIG.appSecret ? '✅' : '❌'}`);
+    console.log(`  FEISHU_APP_TOKEN: ${FEISHU_CONFIG.appToken ? '✅' : '❌'}`);
+    console.log(`  FEISHU_TABLE_ID: ${FEISHU_CONFIG.tableId ? '✅' : '❌'}`);
     
-    const allConfigured = Object.values(envCheck).every(v => v === '✅');
-    if (!allConfigured) {
-        console.log('\n⚠️  警告：飞书配置不完整，提交功能将无法使用！');
-        console.log('请在 Railway 后台设置环境变量。\n');
+    if (missingEnv.length > 0) {
+        console.error(`\n❌ 错误：缺少必需的环境变量：${missingEnv.join(', ')}`);
+        console.error('请在 Railway 后台配置这些变量！\n');
+        console.error('服务将在 5 秒后退出...\n');
+        setTimeout(() => process.exit(1), 5000);
+        return;
     }
+    
+    console.log('\n✅ 所有环境变量已配置\n');
     
     console.log(`
 ╔════════════════════════════════════════════════════════╗
@@ -277,7 +290,7 @@ app.listen(PORT, () => {
 ║   服务器已启动                                          ║
 ║   本地访问：http://localhost:${PORT}                     ║
 ║   提交 API: POST http://localhost:${PORT}/api/submit     ║
-║   飞书集成：${allConfigured ? '✅ 已配置' : '❌ 未配置'}                    ║
+║   飞书集成：✅ 已配置                                    ║
 ╚════════════════════════════════════════════════════════╝
     `);
 });

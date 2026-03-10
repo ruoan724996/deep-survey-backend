@@ -47,13 +47,13 @@
 点击 "New Variable"，依次添加：
 
 ```
-FEISHU_APP_ID=cli_a90981de3c78dcc8
+FEISHU_APP_ID=your-feishu-app-id-here
 ```
 
 点击 "New Variable"，继续添加：
 
 ```
-FEISHU_APP_SECRET=RQ0RCFDrxfIelhQvgzHLJbp7C3agHnaq
+FEISHU_APP_SECRET=your-feishu-app-secret-here
 ```
 
 重复以上步骤，添加所有变量。
@@ -64,9 +64,9 @@ FEISHU_APP_SECRET=RQ0RCFDrxfIelhQvgzHLJbp7C3agHnaq
 
 ```env
 # 飞书应用配置
-FEISHU_APP_ID=cli_a90981de3c78dcc8
-FEISHU_APP_SECRET=RQ0RCFDrxfIelhQvgzHLJbp7C3agHnaq
-FEISHU_APP_TOKEN=Z0dZbNUvya6uxpsbldTcmFtWngd
+FEISHU_APP_ID=your-feishu-app-id-here
+FEISHU_APP_SECRET=your-feishu-app-secret-here
+FEISHU_APP_TOKEN=your-feishu-app-token-here
 FEISHU_TABLE_ID=tblwubqz2IHIOVDb
 
 # 服务配置
@@ -84,9 +84,9 @@ NODE_ENV=production
 
 | Variable | Value |
 |----------|-------|
-| FEISHU_APP_ID | cli_a90981de3c78dcc8 |
-| FEISHU_APP_SECRET | RQ0RCFDrxfIelhQvgzHLJbp7C3agHnaq |
-| FEISHU_APP_TOKEN | Z0dZbNUvya6uxpsbldTcmFtWngd |
+| FEISHU_APP_ID | your-feishu-app-id-here |
+| FEISHU_APP_SECRET | your-feishu-app-secret-here |
+| FEISHU_APP_TOKEN | your-feishu-app-token-here |
 | FEISHU_TABLE_ID | tblwubqz2IHIOVDb |
 | PORT | 3000 |
 | NODE_ENV | production |
@@ -194,7 +194,7 @@ NODE_ENV=production
 
 **Railway 控制台：** https://railway.app  
 **GitHub 仓库：** https://github.com/ruoan724996/deep-survey-backend  
-**飞书表格：** https://baijiubg.feishu.cn/base/Z0dZbNUvya6uxpsbldTcmFtWngd
+**飞书表格：** https://baijiubg.feishu.cn/base/your-feishu-app-token-here
 
 ---
 
