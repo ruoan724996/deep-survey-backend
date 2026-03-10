@@ -639,16 +639,6 @@
             errorMessage.classList.remove('show');
             
             try {
-                // 自定义验证：检查必填的多选框是否至少选了一个
-                const requiredCheckboxGroups = ['使用场景'];
-                for (const groupName of requiredCheckboxGroups) {
-                    const checkboxes = document.querySelectorAll(`input[name="${groupName}"]`);
-                    const checked = document.querySelectorAll(`input[name="${groupName}"]:checked`);
-                    if (checked.length === 0) {
-                        throw new Error(`请至少选择一个${groupName.replace('使用场景', '使用场景')}选项`);
-                    }
-                }
-                
                 // 收集表单数据
                 const formData = new FormData(e.target);
                 const data = {};
@@ -668,6 +658,30 @@
                         data[field] = values;
                     }
                 });
+                
+                // 前端验证：检查必填字段
+                const requiredFields = ['姓名', '部门单位', '邮箱', '使用经验', '项目经验', '参与动机', '时间投入'];
+                for (const field of requiredFields) {
+                    if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
+                        throw new Error(`请填写必填项：${field}`);
+                    }
+                }
+                
+                // 验证使用场景至少选一个
+                if (!data['使用场景'] || (Array.isArray(data['使用场景']) && data['使用场景'].length === 0)) {
+                    throw new Error('请至少选择一个使用场景选项');
+                }
+                
+                // 验证邮箱格式
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(data['邮箱'])) {
+                    throw new Error('邮箱格式不正确，请输入有效的邮箱地址');
+                }
+                
+                // 验证参与动机字数
+                if (data['参与动机'].length < 20) {
+                    throw new Error('参与动机请至少填写 20 字（当前：' + data['参与动机'].length + '字）');
+                }
                 
                 // 添加提交时间
                 data['提交时间'] = new Date().toISOString();
