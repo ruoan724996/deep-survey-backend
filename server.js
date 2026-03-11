@@ -106,13 +106,14 @@ async function submitToFeishu(fields) {
             appToken: FEISHU_CONFIG.appToken,
             tableId: FEISHU_CONFIG.tableId
         });
+        console.log('提交字段列表:', Object.keys(fields));
 
         const req = https.request(options, (res) => {
             let responseData = '';
             res.on('data', (chunk) => responseData += chunk);
             res.on('end', () => {
                 console.log('飞书响应状态:', res.statusCode);
-                console.log('飞书响应内容:', responseData.substring(0, 500));
+                console.log('飞书响应内容:', responseData);
                 
                 try {
                     const result = JSON.parse(responseData);
@@ -121,6 +122,7 @@ async function submitToFeishu(fields) {
                         resolve(result);
                     } else {
                         console.error('❌ 飞书 API 错误:', result.msg);
+                        console.error('❌ 错误详情:', result);
                         reject(new Error(result.msg || '提交失败'));
                     }
                 } catch (e) {
@@ -190,30 +192,27 @@ app.post('/api/submit', async (req, res) => {
         
         console.log('✅ 前端验证通过');
         
-        // 处理空值 - 姓名和部门可选
-        const fields = { ...data };
-        if (!fields['姓名'] || fields['姓名'].trim() === '') {
-            fields['姓名'] = '匿名';
-        }
-        if (!fields['部门单位'] || fields['部门单位'].trim() === '') {
-            fields['部门单位'] = '未填写';
-        }
+        // 飞书表格字段映射（只提交存在的字段）
+        const feishuFields = {
+            '姓名': data['姓名'] || '匿名',
+            '部门单位': data['部门单位'] || '未填写',
+            '邮箱': data['邮箱'],
+            '微信手机号': data['微信手机号'] || '未填写',
+            '使用经验': data['使用经验'],
+            '使用场景': Array.isArray(data['使用场景']) ? data['使用场景'].join(', ') : data['使用场景'],
+            '项目经验': data['项目经验'],
+            '参与动机': data['参与动机'],
+            '时间投入': data['时间投入'],
+            '能分享': Array.isArray(data['能分享']) ? data['能分享'].join(', ') : (data['能分享'] || '未填写'),
+            '期望': data['期望'] || '未填写',
+            '其他建议': data['其他建议'] || '未填写',
+            '提交时间': new Date().toISOString()
+        };
         
-        // 格式化数组字段为字符串
-        if (Array.isArray(fields['使用场景'])) {
-            fields['使用场景'] = fields['使用场景'].join(', ');
-        }
-        if (Array.isArray(fields['能分享'])) {
-            fields['能分享'] = fields['能分享'].join(', ');
-        }
-        
-        // 添加提交时间
-        fields['提交时间'] = new Date().toISOString();
-        
-        console.log('📤 准备提交到飞书:', fields);
+        console.log('📤 准备提交到飞书:', feishuFields);
         
         // 提交到飞书多维表格
-        const result = await submitToFeishu(fields);
+        const result = await submitToFeishu(feishuFields);
         
         console.log('✅ 提交成功:', result.data.record.id);
         res.json({ 
