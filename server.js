@@ -150,64 +150,117 @@ app.post('/api/submit', async (req, res) => {
     try {
         const data = req.body;
         
-        // 验证必填字段（匹配前端 index.html 的 required 字段）
-        const requiredFields = ['姓名', '部门单位', '邮箱', '使用经验', '项目经验', '参与动机', '时间投入'];
-        for (const field of requiredFields) {
-            if (!data[field]) {
-                console.log('❌ 验证失败：缺少字段', field);
+        // 检测是哪种问卷类型
+        const isTrainingFeedback = data['培训日期'] !== undefined; // 培训反馈问卷
+        const isDeepSurvey = data['邮箱'] !== undefined; // 深度交流群问卷
+        
+        let feishuFields;
+        
+        if (isTrainingFeedback) {
+            // ========== 培训反馈问卷字段映射 ==========
+            console.log('📋 检测到培训反馈问卷');
+            
+            // 验证必填字段
+            const requiredFields = ['培训日期', '帮助程度', '内容难度', '开发经验', '整体满意度', '是否推荐'];
+            for (const field of requiredFields) {
+                if (!data[field]) {
+                    console.log('❌ 验证失败：缺少字段', field);
+                    return res.status(400).json({
+                        success: false,
+                        message: `缺少必填字段：${field}`
+                    });
+                }
+            }
+            
+            feishuFields = {
+                '姓名': data['姓名'] || '匿名',
+                '部门': data['部门'] || '未填写',
+                '培训日期': data['培训日期'],
+                '帮助程度': data['帮助程度'],
+                '内容难度': data['内容难度'],
+                '收获知识点': data['收获知识点'] || '未填写',
+                '开发经验': data['开发经验'],
+                '功能类型': Array.isArray(data['功能类型']) ? data['功能类型'].join(', ') : '未填写',
+                '主要帮助': Array.isArray(data['主要帮助']) ? data['主要帮助'].join(', ') : '未填写',
+                '困难问题': Array.isArray(data['困难问题']) ? data['困难问题'].join(', ') : '未填写',
+                '关注方向': Array.isArray(data['关注方向']) ? data['关注方向'].join(', ') : '未填写',
+                '学习形式': data['学习形式'] || '未填写',
+                '学习时间': data['学习时间'] || '未填写',
+                '整体满意度': data['整体满意度'],
+                '是否推荐': data['是否推荐'],
+                '其他建议': data['其他建议'] || '未填写',
+                '提交时间': new Date().toISOString()
+            };
+            
+        } else if (isDeepSurvey) {
+            // ========== 深度交流群问卷字段映射 ==========
+            console.log('📋 检测到深度交流群问卷');
+            
+            // 验证必填字段
+            const requiredFields = ['姓名', '部门单位', '邮箱', '使用经验', '项目经验', '参与动机', '时间投入'];
+            for (const field of requiredFields) {
+                if (!data[field]) {
+                    console.log('❌ 验证失败：缺少字段', field);
+                    return res.status(400).json({
+                        success: false,
+                        message: `缺少必填字段：${field}`
+                    });
+                }
+            }
+            
+            // 验证多选框至少选一个
+            if (!data['使用场景'] || (Array.isArray(data['使用场景']) && data['使用场景'].length === 0)) {
+                console.log('❌ 验证失败：使用场景未选择');
                 return res.status(400).json({
                     success: false,
-                    message: `缺少必填字段：${field}`
+                    message: '请至少选择一个使用场景选项'
                 });
             }
-        }
-        
-        // 验证多选框至少选一个
-        if (!data['使用场景'] || (Array.isArray(data['使用场景']) && data['使用场景'].length === 0)) {
-            console.log('❌ 验证失败：使用场景未选择');
+            
+            // 验证邮箱格式
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(data['邮箱'])) {
+                console.log('❌ 验证失败：邮箱格式错误', data['邮箱']);
+                return res.status(400).json({
+                    success: false,
+                    message: '邮箱格式不正确'
+                });
+            }
+            
+            // 验证参与动机字数
+            if (data['参与动机'].length < 20) {
+                console.log('❌ 验证失败：参与动机字数不足', data['参与动机'].length);
+                return res.status(400).json({
+                    success: false,
+                    message: '参与动机请至少填写 20 字'
+                });
+            }
+            
+            feishuFields = {
+                '姓名': data['姓名'] || '匿名',
+                '部门单位': data['部门单位'] || '未填写',
+                '邮箱': data['邮箱'],
+                '微信手机号': data['微信手机号'] || '未填写',
+                '使用经验': data['使用经验'],
+                '使用场景': Array.isArray(data['使用场景']) ? data['使用场景'].join(', ') : data['使用场景'],
+                '项目经验': data['项目经验'],
+                '参与动机': data['参与动机'],
+                '时间投入': data['时间投入'],
+                '能分享': Array.isArray(data['能分享']) ? data['能分享'].join(', ') : (data['能分享'] || '未填写'),
+                '期望': data['期望'] || '未填写',
+                '其他建议': data['其他建议'] || '未填写',
+                '提交时间': new Date().toISOString()
+            };
+            
+        } else {
+            console.log('❌ 无法识别问卷类型');
             return res.status(400).json({
                 success: false,
-                message: '请至少选择一个使用场景选项'
-            });
-        }
-        
-        // 验证邮箱格式
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(data['邮箱'])) {
-            console.log('❌ 验证失败：邮箱格式错误', data['邮箱']);
-            return res.status(400).json({
-                success: false,
-                message: '邮箱格式不正确'
-            });
-        }
-        
-        // 验证参与动机字数
-        if (data['参与动机'].length < 20) {
-            console.log('❌ 验证失败：参与动机字数不足', data['参与动机'].length);
-            return res.status(400).json({
-                success: false,
-                message: '参与动机请至少填写 20 字'
+                message: '无法识别问卷类型，请检查表单字段'
             });
         }
         
         console.log('✅ 前端验证通过');
-        
-        // 飞书表格字段映射（只提交存在的字段）
-        const feishuFields = {
-            '姓名': data['姓名'] || '匿名',
-            '部门单位': data['部门单位'] || '未填写',
-            '邮箱': data['邮箱'],
-            '微信手机号': data['微信手机号'] || '未填写',
-            '使用经验': data['使用经验'],
-            '使用场景': Array.isArray(data['使用场景']) ? data['使用场景'].join(', ') : data['使用场景'],
-            '项目经验': data['项目经验'],
-            '参与动机': data['参与动机'],
-            '时间投入': data['时间投入'],
-            '能分享': Array.isArray(data['能分享']) ? data['能分享'].join(', ') : (data['能分享'] || '未填写'),
-            '期望': data['期望'] || '未填写',
-            '其他建议': data['其他建议'] || '未填写',
-            '提交时间': new Date().toISOString()
-        };
         
         console.log('📤 准备提交到飞书:', feishuFields);
         
