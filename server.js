@@ -188,8 +188,8 @@ app.post('/api/submit', async (req, res) => {
                 '学习时间': data['学习时间'] || '未填写',
                 '整体满意度': data['整体满意度'],
                 '是否推荐': data['是否推荐'],
-                '其他建议': data['其他建议'] || '未填写',
-                '提交时间': new Date().toISOString()
+                '其他建议': data['其他建议'] || '未填写'
+                // '提交时间' 字段已配置自动填充，不需要手动提交
             };
             
         } else if (isDeepSurvey) {
@@ -248,8 +248,8 @@ app.post('/api/submit', async (req, res) => {
                 '时间投入': data['时间投入'],
                 '能分享': Array.isArray(data['能分享']) && data['能分享'].length > 0 ? data['能分享'] : ['未填写'],
                 '期望': data['期望'] || '未填写',
-                '其他建议': data['其他建议'] || '未填写',
-                '提交时间': new Date().toISOString()
+                '其他建议': data['其他建议'] || '未填写'
+                // '提交时间' 字段已配置自动填充，不需要手动提交
             };
             
         } else {
