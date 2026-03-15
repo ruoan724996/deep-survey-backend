@@ -196,8 +196,8 @@ app.post('/api/submit', async (req, res) => {
             // ========== 深度交流群问卷字段映射 ==========
             console.log('📋 检测到深度交流群问卷');
             
-            // 验证必填字段
-            const requiredFields = ['姓名', '部门单位', '邮箱', '使用经验', '项目经验', '参与动机', '时间投入'];
+            // 验证必填字段（简化后：姓名、邮箱、参与动机）
+            const requiredFields = ['姓名', '邮箱', '参与动机'];
             for (const field of requiredFields) {
                 if (!data[field]) {
                     console.log('❌ 验证失败：缺少字段', field);
@@ -227,26 +227,12 @@ app.post('/api/submit', async (req, res) => {
                 });
             }
             
-            // 验证参与动机字数
-            if (data['参与动机'].length < 20) {
-                console.log('❌ 验证失败：参与动机字数不足', data['参与动机'].length);
-                return res.status(400).json({
-                    success: false,
-                    message: '参与动机请至少填写 20 字'
-                });
-            }
-            
+            // 简化后的字段映射（6 个字段）
             feishuFields = {
                 '姓名': data['姓名'] || '匿名',
-                '部门单位': data['部门单位'] || '未填写',
-                '邮箱': data['邮箱'],
+                '邮箱': data['邮箱'] || '未填写',
                 '微信手机号': data['微信手机号'] || '未填写',
-                '使用经验': data['使用经验'],
-                '使用场景': Array.isArray(data['使用场景']) && data['使用场景'].length > 0 ? data['使用场景'] : ['未填写'],
-                '项目经验': data['项目经验'],
-                '参与动机': data['参与动机'],
-                '时间投入': data['时间投入'],
-                '能分享': Array.isArray(data['能分享']) && data['能分享'].length > 0 ? data['能分享'] : ['未填写'],
+                '参与动机': data['参与动机'] || '未填写',
                 '期望': data['期望'] || '未填写',
                 '其他建议': data['其他建议'] || '未填写'
                 // '提交时间' 字段已配置自动填充，不需要手动提交
