@@ -1,0 +1,9 @@
+PROJECT_NAME=deep-survey-backend
+PROJECT_PURPOSE=大模型深度交流群成员筛选问卷
+DEPLOY_URL=https://deep-survey-backend-production.up.railway.app/
+HEALTH_CHECK=/health
+GIT_REMOTE=https://github.com/ruoan724996/deep-survey-backend
+CREATED=2026-03-08
+OWNER=田福成
+LAST_MODIFIED=2026-03-14
+MODIFIED_BY=AI 助手
