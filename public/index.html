@@ -550,7 +550,8 @@
                     }
                 }
                 
-                // 处理多选字段
+                // 处理多选字段（当前问卷无多选字段）
+                const checkboxFields = [];
                 checkboxFields.forEach(field => {
                     const values = formData.getAll(field);
                     if (values.length > 0) {
