@@ -208,25 +208,6 @@ app.post('/api/submit', async (req, res) => {
                 }
             }
             
-            // 验证多选框至少选一个
-            if (!data['使用场景'] || (Array.isArray(data['使用场景']) && data['使用场景'].length === 0)) {
-                console.log('❌ 验证失败：使用场景未选择');
-                return res.status(400).json({
-                    success: false,
-                    message: '请至少选择一个使用场景选项'
-                });
-            }
-            
-            // 验证邮箱格式
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(data['邮箱'])) {
-                console.log('❌ 验证失败：邮箱格式错误', data['邮箱']);
-                return res.status(400).json({
-                    success: false,
-                    message: '邮箱格式不正确'
-                });
-            }
-            
             // 简化后的字段映射（6 个字段）
             feishuFields = {
                 '姓名': data['姓名'] || '匿名',
