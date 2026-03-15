@@ -559,3 +559,48 @@
                 });
                 
                 // 前端验证：检查必填字段
+                const requiredFields = ['姓名', '邮箱', '参与动机'];
+                for (const field of requiredFields) {
+                    if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
+                        throw new Error(`请填写必填项：${field}`);
+                    }
+                }
+                
+                // 验证邮箱格式
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(data['邮箱'])) {
+                    throw new Error('邮箱格式不正确，请输入有效的邮箱地址');
+                }
+                
+                // 添加提交时间
+                data['提交时间'] = new Date().toISOString();
+                
+                console.log('提交数据:', data);
+                
+                // 提交到后端
+                const result = await submitToBackend(data);
+                
+                // 显示成功消息
+                document.getElementById('survey-form').style.display = 'none';
+                document.querySelector('.progress-bar').style.display = 'none';
+                successMessage.classList.add('show');
+                window.scrollTo(0, 0);
+                
+                console.log('提交成功:', result);
+                
+            } catch (error) {
+                console.error('提交失败:', error);
+                errorMessage.textContent = '提交失败：' + error.message;
+                errorMessage.classList.add('show');
+                window.scrollTo(0, 0);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交申请';
+            }
+        });
+
+        // 监听表单变化更新进度
+        document.getElementById('survey-form').addEventListener('change', updateProgress);
+        document.getElementById('survey-form').addEventListener('input', updateProgress);
+    </script>
+</body>
+</html>
